@@ -44,7 +44,7 @@ int main(void) {
 
         fd = open(filename, O_RDONLY);
 
-        if (fst at(fd, &sp) == -1) {
+        if (fstat(fd, &sp) == -1) {
             perror("fstat() error");
             exit(EXIT_FAILURE);
         }
