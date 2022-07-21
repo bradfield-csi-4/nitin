@@ -38,7 +38,7 @@ int main(void) {
     for (int j = 0; j < i; j++) {
         char *filename = entries[j]->d_name;
 
-        // Skips hidden files/commands
+        // Skips hidden files & self/parent references
         if (filename[0] == '.')
             continue;
 
