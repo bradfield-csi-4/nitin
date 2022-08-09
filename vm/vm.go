@@ -1,5 +1,7 @@
 package vm
 
+import "fmt"
+
 const (
 	_ = byte(iota)
 	LOAD
@@ -13,37 +15,38 @@ const instructionSize = 3
 
 func compute(memory []byte) {
 	registers := [3]byte{8}
-	pc := &registers[0]
+	pc := registers[0]
 
-	var r1 *byte
-	var r2 *byte
-	var addr *byte
+	var arg1 byte
+	var arg2 byte
 
-OuterLoop:
 	for {
 		// FETCH
-		instruction := memory[*pc : *pc+instructionSize]
+		instruction := memory[pc : pc+instructionSize]
 
 		// DECODE
-		opCode := &instruction[0]
-		r1 = &instruction[1]
-		r2 = &instruction[2]
-		addr = &instruction[2]
+		op := instruction[0]
+		arg1 = instruction[1]
+		arg2 = instruction[2]
 
 		// EXECUTE
-		switch *opCode {
-		case LOAD:
-			registers[*r1] = memory[*addr]
-		case STORE:
-			memory[*addr] = registers[*r1]
-		case ADD:
-			registers[*r1] += registers[*r2]
-		case SUB:
-			registers[*r1] -= registers[*r2]
-		case HALT:
-			break OuterLoop
+		if op == HALT {
+			return
 		}
 
-		*pc += instructionSize
+		switch op {
+		case LOAD:
+			registers[arg1] = memory[arg2]
+		case STORE:
+			memory[arg2] = registers[arg1]
+		case ADD:
+			registers[arg1] += registers[arg2]
+		case SUB:
+			registers[arg1] -= registers[arg2]
+		default:
+			panic(fmt.Sprintf("Invalid opcode: 0x%02x", op))
+		}
+
+		pc += instructionSize
 	}
 }
