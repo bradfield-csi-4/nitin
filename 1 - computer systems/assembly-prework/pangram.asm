@@ -15,5 +15,5 @@ pangram:
         xor eax, eax
         and edx, 0x03ffffff
         cmp edx, 0x03ffffff
-	    sete al
-	    ret
+        sete al
+        ret
