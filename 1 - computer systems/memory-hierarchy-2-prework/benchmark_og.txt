@@ -1,0 +1,12 @@
+/private/var/folders/rh/tdl3m1fx3fsd3kcll7rz39yc0000gn/T/GoLand/___BenchmarkMetrics_in_main_metrics.test -test.v -test.paniconexit0 -test.bench ^\QBenchmarkMetrics\E$ -test.run ^$
+goos: darwin
+goarch: arm64
+pkg: main/metrics
+BenchmarkMetrics
+BenchmarkMetrics/Average_age
+BenchmarkMetrics/Average_age-8         	     682	   1665583 ns/op
+BenchmarkMetrics/Average_payment
+BenchmarkMetrics/Average_payment-8     	      56	  24797394 ns/op
+BenchmarkMetrics/Payment_stddev
+BenchmarkMetrics/Payment_stddev-8      	      27	  47187356 ns/op
+PASS
