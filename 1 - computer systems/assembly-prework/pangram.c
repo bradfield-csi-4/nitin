@@ -13,7 +13,7 @@ int pangram(char *s) {
         }
         s++;
     }
-    return result == 0b11111111111111111111111111;
+    return result == 0x03ffffff;
 }
 
 int main(void) {
