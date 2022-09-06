@@ -13,27 +13,27 @@ type Payment struct {
 }
 
 type User struct {
-	age int8
+	age uint8
 }
 
 func AverageAge(users []*User) float64 {
-	var sum int64
+	var sum uint64
 	count := 0
 	for _, u := range users {
 		count++
-		sum += int64(u.age)
+		sum += uint64(u.age)
 	}
 	return float64(sum) / float64(count)
 }
 
 func AveragePaymentAmount(payments []*Payment) float64 {
-	var sum int64
+	var sum uint64
 	count := 0
 	for _, p := range payments {
 		count++
-		sum += int64(p.cents)
+		sum += uint64(p.cents)
 	}
-	return float64(sum) / float64(count) / 100
+	return 0.01 * float64(sum) / float64(count)
 }
 
 // Compute the standard deviation of payment amounts
@@ -63,7 +63,7 @@ func LoadData() ([]*User, []*Payment) {
 	var users []*User
 	for _, line := range userLines {
 		age, _ := strconv.Atoi(line[2])
-		users = append(users, &User{int8(age)})
+		users = append(users, &User{uint8(age)})
 	}
 
 	f, err = os.Open("payments.csv")
