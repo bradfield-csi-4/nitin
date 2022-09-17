@@ -4,7 +4,7 @@
 /* $begin echo */
 #include "csapp.h"
 
-void echo(int connfd) 
+void echo(int connfd)
 {
     size_t n; 
     char buf[MAXLINE]; 
@@ -16,4 +16,3 @@ void echo(int connfd)
 	Rio_writen(connfd, buf, n);
     }
 }
-
