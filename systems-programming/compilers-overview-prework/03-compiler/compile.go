@@ -87,13 +87,28 @@ func getAsm(asm *string, n ast.Node) error {
 }
 
 func appendBinaryOp(asm *string, binExpr *ast.BinaryExpr) error {
-	if binExpr.Op == token.ADD {
+	switch binExpr.Op {
+	case token.ADD:
 		*asm += "add\n"
-	} else if binExpr.Op == token.SUB {
+	case token.SUB:
 		*asm += "sub\n"
-	} else if binExpr.Op == token.MUL {
+	case token.MUL:
 		*asm += "mul\n"
-	} else {
+	case token.QUO:
+		*asm += "div\n"
+	case token.EQL:
+		*asm += "eq\n"
+	case token.LSS:
+		*asm += "lt\n"
+	case token.GTR:
+		*asm += "gt\n"
+	case token.NEQ:
+		*asm += "neq\n"
+	case token.LEQ:
+		*asm += "leq\n"
+	case token.GEQ:
+		*asm += "geq\n"
+	default:
 		return fmt.Errorf("unsupported operation")
 	}
 	return nil
