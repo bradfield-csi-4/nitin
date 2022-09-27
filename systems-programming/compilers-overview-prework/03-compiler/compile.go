@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
-	"log"
 	"strconv"
 )
 
@@ -25,10 +24,10 @@ func compile(node *ast.FuncDecl) (string, error) {
 	for i := 0; i < len(statements); i++ {
 		switch expr := statements[i].(type) {
 		case *ast.ReturnStmt:
-			evaluateExpr(&expr.Results[0], &asm)
+			compileExpr(expr.Results[0], &asm)
 			return asm + "pop 0\nhalt", nil
 		case *ast.AssignStmt:
-			evaluateExpr(&expr.Rhs[0], &asm)
+			compileExpr(expr.Rhs[0], &asm)
 			identName := expr.Lhs[0].(*ast.Ident).Name
 			asm += fmt.Sprintf("pop %v\n", memMap[identName])
 		default:
@@ -38,21 +37,11 @@ func compile(node *ast.FuncDecl) (string, error) {
 	return "", fmt.Errorf("probably missing return statement")
 }
 
-func evaluateExpr(stmt *ast.Expr, asm *string) {
-	ast.Inspect(*stmt, func(n ast.Node) bool {
-		err := getAsm(asm, n)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return false
-	})
-}
-
-func getAsm(asm *string, n ast.Node) error {
+func compileExpr(stmt ast.Expr, asm *string) error {
 	var err error
 
 	// Base case
-	switch expr := n.(type) {
+	switch expr := stmt.(type) {
 	case *ast.BasicLit:
 		value, _ := strconv.Atoi(expr.Value)
 		*asm += fmt.Sprintf("pushi %v\n", value)
@@ -62,18 +51,18 @@ func getAsm(asm *string, n ast.Node) error {
 		return nil
 	}
 
-	n = stepIntoParens(n)
+	stmt = stepIntoParens(stmt)
 
-	binExpr, isBinExpr := n.(*ast.BinaryExpr)
+	binExpr, isBinExpr := stmt.(*ast.BinaryExpr)
 	if !isBinExpr {
 		return fmt.Errorf("unsupported expression")
 	}
 
-	err = getAsm(asm, binExpr.X)
+	err = compileExpr(binExpr.X, asm)
 	if err != nil {
 		return err
 	}
-	err = getAsm(asm, binExpr.Y)
+	err = compileExpr(binExpr.Y, asm)
 	if err != nil {
 		return err
 	}
@@ -115,7 +104,7 @@ func appendBinaryOp(asm *string, binExpr *ast.BinaryExpr) error {
 }
 
 // Skip parentheses expressions by elevating child node (i.e. X)
-func stepIntoParens(n ast.Node) ast.Node {
+func stepIntoParens(n ast.Expr) ast.Expr {
 	parenExpr, isParen := n.(*ast.ParenExpr)
 	if isParen {
 		n = parenExpr.X
