@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	src := "hello AND world OR alice AND NOT bob"
+	src := "hello world OR alice -bob"
 
 	var token *Token
 	var tokens []*Token
@@ -23,6 +23,6 @@ func main() {
 	fmt.Println()
 
 	p := &Parser{tokens, 0}
-	ast := p.parse()
+	ast := p.parseQuery()
 	ast.PrettyPrint(4)
 }

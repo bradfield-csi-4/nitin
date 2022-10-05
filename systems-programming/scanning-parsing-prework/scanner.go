@@ -37,6 +37,7 @@ func newScanner(src string) *Scanner {
 }
 
 var tokenEOF = Token{EOF, ""}
+var tokenNOT = Token{NOT, ""}
 
 func (s *Scanner) isAtEnd() bool {
 	return s.idx >= len(s.src)
@@ -58,6 +59,12 @@ func (s *Scanner) scan() *Token {
 		}
 		idx++
 	}
+
+	if s.src[s.idx] == '-' {
+		s.idx++
+		return &Token{NOT, "-"}
+	}
+
 	lexeme := s.src[s.idx:idx]
 	s.idx = idx + 1
 	return &Token{s.getTokenType(lexeme), lexeme}

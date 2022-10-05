@@ -5,10 +5,6 @@ type Parser struct {
 	current int
 }
 
-func (p *Parser) parse() Expr {
-	return p.parseQuery()
-}
-
 func (p *Parser) parseQuery() Expr {
 	return p.parseOrQuery()
 }
@@ -46,6 +42,17 @@ func (p *Parser) parseNotQuery() Expr {
 func (p *Parser) parseTermNode() Expr {
 	currentToken := p.tokens[p.current]
 	p.current++
+	if p.isAtEnd() {
+		return TermNode{currentToken.lexeme}
+	}
+
+	nextToken := p.tokens[p.current]
+	if match(nextToken, STRING) {
+		return AndNode{TermNode{currentToken.lexeme}, p.parseTermNode()}
+	} else if match(nextToken, NOT) {
+		return AndNode{TermNode{currentToken.lexeme}, p.parseNotQuery()}
+	}
+
 	return TermNode{currentToken.lexeme}
 }
 
@@ -57,5 +64,9 @@ func (p *Parser) match(tokenType TokenType) bool {
 	if p.isAtEnd() {
 		return false
 	}
-	return p.tokens[p.current].tokenType == tokenType
+	return match(p.tokens[p.current], tokenType)
+}
+
+func match(token *Token, tokenType TokenType) bool {
+	return token.tokenType == tokenType
 }
