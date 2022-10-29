@@ -1,14 +1,17 @@
 import marshal
 import sys
+import types
 
 assert sys.version_info[:2] == (2, 7)
 
 
 class Op:
     NOP = 9
+    BINARY_MULTIPLY = 20
     BINARY_DIVIDE = 21
     BINARY_MODULO = 22
     BINARY_ADD = 23
+    BINARY_SUBTRACT = 24
     PRINT_ITEM = 71
     PRINT_NEWLINE = 72
     RETURN_VALUE = 83
@@ -16,7 +19,9 @@ class Op:
     STORE_NAME = 90
     LOAD_CONST = 100
     LOAD_NAME = 101
+    CALL_FUNCTION = 131
     MAKE_FUNCTION = 132
+
 
 def parse_pyc(f):
     """
@@ -67,11 +72,18 @@ def interpret(code):
             return values.pop()
         elif opcode == Op.STORE_NAME:
             env[code.co_names[oparg]] = values.pop()
-        elif opcode == Op.LOAD_NAME:
-            values.append(env[code.co_names[oparg]])
         elif opcode == Op.LOAD_CONST:
             value = code.co_consts[oparg]
             values.append(value)
+        elif opcode == Op.LOAD_NAME:
+            values.append(env[code.co_names[oparg]])
+        elif opcode == Op.MAKE_FUNCTION:
+            code_obj = values.pop()
+            values.append(types.FunctionType(code_obj, globals()))
+        elif opcode == Op.CALL_FUNCTION:
+            args = values.pop()
+            func = values.pop()
+            values.append(func(args))
         else:
             raise Exception('Unknown opcode {}'.format(opcode))
 

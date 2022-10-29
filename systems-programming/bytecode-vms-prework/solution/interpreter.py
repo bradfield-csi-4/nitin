@@ -1,6 +1,9 @@
 #!/usr/bin/env python2.7
 
-import marshal, operator, sys
+import marshal
+import operator
+import sys
+
 
 class Op:
     BINARY_MULTIPLY   = 20

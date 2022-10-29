@@ -36,10 +36,10 @@ func (p *Parser) parseNotQuery() Expr {
 		p.current++
 		return NotNode{p.parseNotQuery()}
 	}
-	return p.parseTermNode()
+	return p.parsePhrase()
 }
 
-func (p *Parser) parseTermNode() Expr {
+func (p *Parser) parsePhrase() Expr {
 	currentToken := p.tokens[p.current]
 	p.current++
 	if p.isAtEnd() {
@@ -47,8 +47,9 @@ func (p *Parser) parseTermNode() Expr {
 	}
 
 	nextToken := p.tokens[p.current]
+	// Handling of phrases (i.e. consecutive strings)
 	if match(nextToken, STRING) {
-		return AndNode{TermNode{currentToken.lexeme}, p.parseTermNode()}
+		return AndNode{TermNode{currentToken.lexeme}, p.parsePhrase()}
 	} else if match(nextToken, NOT) {
 		return AndNode{TermNode{currentToken.lexeme}, p.parseNotQuery()}
 	}
