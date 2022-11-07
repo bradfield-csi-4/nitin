@@ -8,25 +8,28 @@ import (
 
 const ListeningPort int = 80
 const DestinationPort int = 9000
-const BufferSize int = 1000
+const BufferSize int = 100
 const CachePath = "website/"
 
 var cache = make(map[string][]byte)
 
 func main() {
-	listeningSocket := startTCPServer()
+	serverSocket := startTCPServer()
 	destinationSocket := connectToDestinationServer()
 
 	for {
 		// Accepts connection and creates new socket
-		socket, clientAddress, err := syscall.Accept(listeningSocket)
+		connectionSocket, clientAddress, err := syscall.Accept(serverSocket)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Printf("Connected to remote client: %v\n", clientAddress)
 
 		// Reads request from client
-		req := readFrom(socket)
+		req := readFrom(connectionSocket)
+		if len(req) == 0 {
+			continue
+		}
 		path := strings.Split(strings.Split(string(req), "\r\n")[0], " ")[1]
 
 		// Checks if response is available in cache
@@ -44,7 +47,7 @@ func main() {
 		}
 
 		// Return response to client
-		err = syscall.Sendto(socket, resp, 0, clientAddress)
+		err = syscall.Sendto(connectionSocket, resp, 0, clientAddress)
 		if err != nil {
 			panic(err)
 		}
@@ -54,27 +57,26 @@ func main() {
 			cache[path] = resp
 		}
 
-		_ = syscall.Close(socket)
+		_ = syscall.Close(connectionSocket)
 		fmt.Printf("Disconnected from remote client: %v\n", clientAddress)
 	}
-
-	//_ = syscall.Close(listeningSocket)
+	//_ = syscall.Close(serverSocket)
 	//_ = syscall.Close(destinationSocket)
+	//fmt.Printf("Stopping server")
 }
 
 func readFrom(socket int) []byte {
 	var req []byte
-
+	buf := make([]byte, BufferSize)
 	for {
 		// Read message from socket
-		buf := make([]byte, BufferSize)
-		_, _, err := syscall.Recvfrom(socket, buf, 0)
+		numBytes, _, err := syscall.Recvfrom(socket, buf, 0)
 		if err != nil {
 			panic(err)
 		}
-		req = append(req, buf...)
-
-		if buf[BufferSize-1] == 0 {
+		req = append(req, buf[:numBytes]...)
+		// Reached end of the response
+		if numBytes < BufferSize {
 			break
 		}
 	}

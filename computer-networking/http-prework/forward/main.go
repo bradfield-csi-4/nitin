@@ -54,10 +54,11 @@ func main() {
 		}
 		fmt.Printf("TCP Server connected to remote client: %v\n", sa)
 
+		buf := make([]byte, 10)
+
 		for {
 			// Read message from socket
-			msg := make([]byte, 10)
-			size, _, err := syscall.Recvfrom(nfd, msg, 0)
+			size, _, err := syscall.Recvfrom(nfd, buf, 0)
 			if err != nil {
 				panic(err)
 			}
@@ -67,7 +68,7 @@ func main() {
 			}
 
 			// Send message back to forwarding socket
-			err = syscall.Sendto(fd, msg, 0, destAddr)
+			err = syscall.Sendto(fd, buf, 0, destAddr)
 			if err != nil {
 				panic(err)
 			}

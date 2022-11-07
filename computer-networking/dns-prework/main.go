@@ -61,24 +61,21 @@ func main() {
 	query = binary.BigEndian.AppendUint16(query, uint16(qtypes[qtype])) // Type: A
 	query = binary.BigEndian.AppendUint16(query, 1)                     // Class: IN
 
-	// Create Socket
-	fd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
+	// Create UDP Socket
+	socket, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, 0)
 	if err != nil {
 		panic(err)
 	}
 
 	// Send Query
-	err = syscall.Sendto(fd, query, 0, &syscall.SockaddrInet4{Port: 53, Addr: [4]byte{8, 8, 8, 8}})
+	err = syscall.Sendto(socket, query, 0, &syscall.SockaddrInet4{Port: 53, Addr: [4]byte{8, 8, 8, 8}})
 	if err != nil {
 		panic(err)
 	}
 
 	// Decode Response
 	response := make([]byte, 4096)
-	_, _, err = syscall.Recvfrom(fd, response, 0)
-	if err != nil {
-		panic(err)
-	}
+
 	//fmt.Println(toHexString(response))
 
 	// Assert identifier match
