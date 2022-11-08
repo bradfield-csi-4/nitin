@@ -59,7 +59,7 @@ func main() {
 				continue
 			}
 
-			fmt.Printf("\t%v  %v - %v \n", seqNum, getIPStr(icmp.sourceAddr), roundTripTime)
+			fmt.Printf("\t%v  %v (%v) - %v \n", seqNum, icmp.host, icmp.sourceAddr, roundTripTime)
 
 			if icmp.packetType == IcmpReply {
 				break
@@ -139,7 +139,8 @@ func onesComp(num uint16) uint16 {
 }
 
 type icmp struct {
-	sourceAddr     [4]byte
+	sourceAddr     string
+	host           string
 	packetType     int
 	code           uint8
 	checksum       uint16
@@ -151,8 +152,19 @@ func parseIcmp(datagram []byte) icmp {
 	ipHeaderLen := 4 * (datagram[0] & 0x0F)
 	icmpPayload := datagram[ipHeaderLen:]
 
+	sourceIP := getIPStr(toByteArray(datagram[12:16]))
+
+	var host string
+	nameParts, err := net.LookupAddr(sourceIP)
+	if err == nil {
+		host = nameParts[0]
+	} else {
+		host = sourceIP
+	}
+
 	return icmp{
-		sourceAddr:     toByteArray(datagram[12:16]),
+		sourceAddr:     sourceIP,
+		host:           host,
 		packetType:     int(icmpPayload[0]),
 		code:           icmpPayload[1],
 		checksum:       binary.BigEndian.Uint16(icmpPayload[2:4]),
