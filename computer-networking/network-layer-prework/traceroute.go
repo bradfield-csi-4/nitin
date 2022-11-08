@@ -75,14 +75,14 @@ func getDestAddr(err error, input string) *syscall.SockaddrInet4 {
 	ips, err := net.LookupIP("google.com")
 	check(err)
 
-	addr := toByteArray(ips[1][12:])
+	addr := toByteArray(ips[0][12:])
 
 	destAddr := &syscall.SockaddrInet4{
 		Port: 80,
 		Addr: addr,
 	}
 
-	fmt.Printf("traceroute to %v (%v), %v hops max\n", input, ips[1], maxHops)
+	fmt.Printf("traceroute to %v (%v), %v hops max\n", input, ips[0], maxHops)
 	return destAddr
 }
 
