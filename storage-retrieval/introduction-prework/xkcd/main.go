@@ -18,9 +18,11 @@ one of many favorites. Download each URL (once!) and build an offline index. Wri
 prints the URL and transcript of each comic that matches a search term provided on the command line.
 */
 
-var comicsToIndex = 571
-var xkcdHost = "https://xkcd.com/"
-var xkcdJsonPath = "/info.0.json"
+const (
+	maxId    = 571
+	xkcdUrl  = "https://xkcd.com/%d/info.0.json"
+	xkcdHost = "https://xkcd.com/"
+)
 
 var titleWordIndex inMemoryStringToIntsIndex
 var idIndex inMemoryHeapIndex
@@ -75,8 +77,8 @@ func (idx *inMemoryStringToIntsIndex) set(key string, val int) {
 func buildOnDiskIndexes() {
 	responseBuffer := make([]byte, 10000)
 
-	for i := 1; i <= comicsToIndex; i++ {
-		resp, err := http.Get(xkcdHost + strconv.Itoa(i) + xkcdJsonPath)
+	for i := 1; i <= maxId; i++ {
+		resp, err := http.Get(fmt.Sprintf(xkcdUrl, i))
 		if err != nil {
 			fmt.Printf("Error making GET request: %v\n", err)
 			return
