@@ -20,7 +20,7 @@ const (
 )
 
 func main() {
-	f, err := os.Open("computer-networking/overview-prework/net.cap")
+	f, err := os.Open("3 - computer-networking/overview-prework/net.cap")
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func main() {
 	body := messageBytes[i+4:]
 	//fmt.Println(toHexString(body))
 
-	outputFile, err := os.Create("computer-networking/overview-prework/output.jpg")
+	outputFile, err := os.Create("3 - computer-networking/overview-prework/output.jpg")
 	if err != nil {
 		panic(err)
 	}
