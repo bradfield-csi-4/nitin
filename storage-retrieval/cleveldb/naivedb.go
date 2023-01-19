@@ -43,18 +43,23 @@ func (db *NaiveDB) RangeScan(start, limit []byte) (Iterator, error) {
 	}
 	sort.Strings(keys)
 
-	var startIdx, limitIdx int
-	for i, key := range keys {
-		if key == string(start) {
-			startIdx = i
-		} else if key == string(limit) {
-			limitIdx = i
+	inRange := false
+	var keysInRange []string
+	for _, key := range keys {
+		if !inRange && key == string(start) {
+			inRange = true
+		}
+
+		if inRange {
+			keysInRange = append(keysInRange, key)
+		}
+
+		if inRange && key == string(limit) {
+			break
 		}
 	}
 
-	keys = keys[startIdx : limitIdx+1]
-
-	return &NaiveIterator{keys: keys, db: db}, nil
+	return &NaiveIterator{keys: keysInRange, db: db}, nil
 }
 
 type NaiveIterator struct {

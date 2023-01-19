@@ -1,8 +1,7 @@
 package cleveldb
 
 import (
-	"bytes"
-	"fmt"
+	"errors"
 	"log"
 	"math/rand"
 	"testing"
@@ -14,7 +13,9 @@ var keys [][]byte
 
 func init() {
 	db = getEmptyDB()
+}
 
+func benchmarkInit(b *testing.B) {
 	rand.Seed(time.Now().Unix())
 	benchmarkSeedSize := 5_000_000
 
@@ -23,10 +24,12 @@ func init() {
 		keys = append(keys, key)
 		_ = db.Put(key, randStr(300))
 	}
+
+	b.ResetTimer()
 }
 
 func getEmptyDB() DB {
-	db, err := NewNaiveDB()
+	db, err := NewClevelDB()
 	if err != nil {
 		log.Fatalf("Error loading database: %v", err)
 		return nil
@@ -38,21 +41,28 @@ func Test_PutGetReturnCorrectValue(t *testing.T) {
 	db = getEmptyDB()
 
 	_ = db.Put([]byte("firstName"), []byte("nitin"))
+	_ = db.Put([]byte("lastName"), []byte("savant"))
 
 	var tests = []struct {
 		key   string
 		value string
+		err   error
 	}{
-		{"firstName", "nitin"},
-		{"lastName", ""},
+		{"lastName", "savant", nil},
+		{"firstName", "nitin", nil},
+		{"middleName", "", errors.New("key not found")},
 	}
 
 	for _, test := range tests {
-		actualValue, _ := db.Get([]byte(test.key))
+		actualValue, actualErr := db.Get([]byte(test.key))
 		expectedValue := []byte(test.value)
 
-		if bytes.Compare(expectedValue, actualValue) != 0 {
+		if string(actualValue) != string(expectedValue) {
 			t.Errorf(`storage.Get("%s") returns unexpected value: "%s"`, test.key, actualValue)
+		}
+
+		if test.err != nil && actualErr != nil && test.err.Error() != actualErr.Error() {
+			t.Errorf(`storage.Get("%s") returns unexpected err: "%s"`, test.key, actualErr)
 		}
 	}
 }
@@ -65,13 +75,13 @@ func Test_DeleteRemovesValue(t *testing.T) {
 
 	_ = db.Put(key, val)
 	actual, _ := db.Get(key)
-	if bytes.Compare(val, actual) != 0 {
+	if string(actual) != string(val) {
 		t.Errorf(`storage.Get("%s") returns unexpected value: "%s"`, key, actual)
 	}
 
 	_ = db.Delete(key)
 	actual, _ = db.Get(key)
-	if bytes.Compare([]byte(""), actual) != 0 {
+	if string(actual) != "" {
 		t.Errorf(`storage.Get("%s") returns unexpected value: "%s"`, key, actual)
 	}
 }
@@ -116,8 +126,9 @@ func randStr(length int) []byte {
 	return byteSlice
 }
 
-//
 //func Benchmark_Put(b *testing.B) {
+//	benchmarkInit(b)
+//
 //	for i := 0; i < b.N; i++ {
 //		_ = db.Put(randStr(20), randStr(300))
 //	}
@@ -126,6 +137,8 @@ func randStr(length int) []byte {
 //}
 //
 //func Benchmark_Get(b *testing.B) {
+//	benchmarkInit(b)
+//
 //	for i := 0; i < b.N; i++ {
 //		_, _ = db.Get(keys[i])
 //	}
@@ -134,17 +147,21 @@ func randStr(length int) []byte {
 //}
 //
 //func Benchmark_Delete(b *testing.B) {
+//	benchmarkInit(b)
+//
 //	for i := 0; i < b.N; i++ {
 //		_ = db.Delete(keys[i])
 //	}
 //
 //	fmt.Printf("Ran %d times\n", b.N)
 //}
-
-func Benchmark_RangeScan(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_, _ = db.RangeScan([]byte("l"), []byte("p"))
-	}
-
-	fmt.Printf("Ran %d times\n", b.N)
-}
+//
+//func Benchmark_RangeScan(b *testing.B) {
+//	benchmarkInit(b)
+//
+//	for i := 0; i < b.N; i++ {
+//		_, _ = db.RangeScan([]byte("l"), []byte("p"))
+//	}
+//
+//	fmt.Printf("Ran %d times\n", b.N)
+//}
