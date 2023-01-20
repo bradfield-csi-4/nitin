@@ -1,19 +1,24 @@
-package cleveldb
+package main
 
 import (
 	"bytes"
 	"math/rand"
+	"os"
 	"time"
 )
 
 const (
-	p        float32 = 0.5
-	maxLevel int     = 24
+	p           float32 = 0.5
+	maxLevel    int     = 24
+	logFileName         = "memtable.log"
 )
+
+var logFile *os.File
 
 func init() {
 	rand.Seed(time.Now().Unix())
 
+	logFile, _ = os.OpenFile(logFileName, os.O_APPEND|os.O_RDWR|os.O_CREATE, os.ModePerm)
 }
 
 type node struct {
@@ -26,18 +31,24 @@ type ClevelDB struct {
 	header   *node
 	topLevel int
 	size     int
+	log      bool
 }
 
-func NewClevelDB() (*ClevelDB, error) {
-	db := &ClevelDB{}
+func GetClevelDB() (*ClevelDB, error) {
+	loadMemtable()
 
-	db.header = &node{}
-	db.topLevel = 1
-
-	return db, nil
+	return newClevelDB(true), nil
 }
 
-func (db *ClevelDB) getNode(key []byte) (*node, error) {
+func newClevelDB(log bool) *ClevelDB {
+	newDB := &ClevelDB{}
+	newDB.header = &node{}
+	newDB.topLevel = 1
+	newDB.log = log
+	return newDB
+}
+
+func (db *ClevelDB) get(key []byte) (*node, error) {
 	// Start with pointers from the list's header node
 	current := db.header
 	searchKey := string(key)
@@ -61,7 +72,7 @@ func (db *ClevelDB) getNode(key []byte) (*node, error) {
 }
 
 func (db *ClevelDB) Get(key []byte) ([]byte, error) {
-	node, err := db.getNode(key)
+	node, err := db.get(key)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +81,13 @@ func (db *ClevelDB) Get(key []byte) ([]byte, error) {
 }
 
 func (db *ClevelDB) Put(key, val []byte) error {
+	if db.log {
+		err := logInsert(key, val)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Track nodes who have a forward pointer that will need to be updated if a new node is inserted
 	update := make([]*node, maxLevel)
 	current := db.header
@@ -129,6 +147,13 @@ func randomLevel() int {
 }
 
 func (db *ClevelDB) Delete(key []byte) error {
+	if db.log {
+		err := logDelete(key)
+		if err != nil {
+			return err
+		}
+	}
+
 	update := make([]*node, maxLevel)
 	current := db.header
 	searchKey := string(key)
@@ -166,7 +191,7 @@ func (db *ClevelDB) Size() int {
 }
 
 func (db *ClevelDB) RangeScan(start, limit []byte) (Iterator, error) {
-	startNode, err := db.getNode(start)
+	startNode, err := db.get(start)
 	if err != nil {
 		return nil, err
 	}
