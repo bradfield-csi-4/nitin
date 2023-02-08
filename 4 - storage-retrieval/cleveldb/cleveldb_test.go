@@ -29,7 +29,7 @@ func Test_ClevelDBGetReturnsCorrectValueFromSSTable(t *testing.T) {
 		fmt.Printf("error flushing memtable: %v", err)
 	}
 
-	db.segments = append(db.segments, ssTable)
+	db.tables = append(db.tables, ssTable)
 
 	db.mdb = newMemtable()
 
@@ -49,7 +49,7 @@ func Test_ClevelDBGetReturnsCorrectValueFromSSTable(t *testing.T) {
 		fmt.Printf("error flushing memtable: %v", err)
 	}
 
-	db.segments = append(db.segments, ssTable)
+	db.tables = append(db.tables, ssTable)
 
 	var tests = []struct {
 		key   string
@@ -59,7 +59,7 @@ func Test_ClevelDBGetReturnsCorrectValueFromSSTable(t *testing.T) {
 		{"lastName", "savant", nil},
 		{"firstName", "nitin", nil},
 		{"maidenName", "", nil},
-		{"middleName", "", keyNotFoundErr},
+		{"middleName", "", notFoundInTableErr},
 	}
 
 	for _, test := range tests {

@@ -13,7 +13,7 @@ func getTestSSTableDB() DB {
 		return ssTableDB
 	}
 
-	db, err := GetClevelDB()
+	db, err := loadClevelDB()
 	if err != nil {
 		return nil
 	}
@@ -38,17 +38,12 @@ func getTestSSTableDB() DB {
 		return nil
 	}
 
-	ssTable, err := flushMemtable(file, db.mdb)
+	ssTable, err := db.flushMemtable(file)
 	if err != nil {
 		return nil
 	}
 
-	offset, index, err := loadIndexFromSSTable(ssTable.file)
-	if err != nil {
-		return nil
-	}
-
-	return &SSTable{file: ssTable.file, index: index, indexOffset: offset}
+	return loadSSTable(ssTable.file)
 }
 
 func Test_SSTableDBGetReturnsCorrectValue(t *testing.T) {
@@ -62,7 +57,7 @@ func Test_SSTableDBGetReturnsCorrectValue(t *testing.T) {
 		{"lastName", "savant", nil},
 		{"firstName", "nitin", nil},
 		{"maidenName", "", nil},
-		{"middleName", "", keyNotFoundErr},
+		{"middleName", "", notFoundInTableErr},
 	}
 
 	for _, test := range tests {

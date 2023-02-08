@@ -24,7 +24,7 @@ func testGetReturnsCorrectValue(t *testing.T, db DB) {
 		{"lastName", "savant", nil},
 		{"firstName", "nitin", nil},
 		{"maidenName", "", nil},
-		{"middleName", "", keyNotFoundErr},
+		{"middleName", "", notFoundInTableErr},
 	}
 
 	for _, test := range tests {

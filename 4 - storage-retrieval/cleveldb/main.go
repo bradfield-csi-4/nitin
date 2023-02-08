@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func main() {
-	db, err := GetClevelDB()
+	db, err := loadClevelDB()
 	if err != nil {
 		return
 	}
