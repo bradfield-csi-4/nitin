@@ -11,12 +11,10 @@ type sortNode struct {
 }
 
 func (n *sortNode) init() {
-
-	input := n.input
-	input.init()
+	n.input.init()
 
 	for {
-		tuple := input.next()
+		tuple := n.input.next()
 		if tuple == nil {
 			break
 		}

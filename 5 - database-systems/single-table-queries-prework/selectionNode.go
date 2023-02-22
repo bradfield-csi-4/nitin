@@ -11,7 +11,9 @@ type predicate struct {
 	op     string
 }
 
-func (n *selectionNode) init() {}
+func (n *selectionNode) init() {
+	n.input.init()
+}
 
 func newSelectionNode(input iterator, column, value, op string) *selectionNode {
 	return &selectionNode{
@@ -25,10 +27,9 @@ func newSelectionNode(input iterator, column, value, op string) *selectionNode {
 }
 
 func (n *selectionNode) next() *tuple {
+
 	for {
-		input := n.input
-		input.init()
-		tuple := input.next()
+		tuple := n.input.next()
 		if tuple == nil {
 			return nil
 		}

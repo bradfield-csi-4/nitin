@@ -6,7 +6,9 @@ type limitNode struct {
 	count int
 }
 
-func (n *limitNode) init() {}
+func (n *limitNode) init() {
+	n.input.init()
+}
 
 func newLimitNode(input iterator, limit int) *limitNode {
 	return &limitNode{
@@ -16,15 +18,11 @@ func newLimitNode(input iterator, limit int) *limitNode {
 }
 
 func (n *limitNode) next() *tuple {
-	for {
-		input := n.input
-		input.init()
-		tuple := input.next()
-		if tuple == nil || n.count >= n.limit {
-			return nil
-		}
-
-		n.count++
-		return tuple
+	tuple := n.input.next()
+	if tuple == nil || n.count >= n.limit {
+		return nil
 	}
+
+	n.count++
+	return tuple
 }

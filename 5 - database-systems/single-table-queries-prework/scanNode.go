@@ -1,7 +1,6 @@
 package main
 
 type scanNode struct {
-	input  iterator
 	tuples []tuple
 	table  string
 	idx    int
