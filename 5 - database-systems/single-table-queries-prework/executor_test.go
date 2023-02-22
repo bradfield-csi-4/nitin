@@ -1,0 +1,82 @@
+package main
+
+import (
+	"fmt"
+	"testing"
+)
+
+func TestSelectStarFromMovies(t *testing.T) {
+	scanNode := newScanNode("movies")
+	results := execute(scanNode)
+
+	// Test
+	expectedCols := []string{"id", "title"}
+	for i, label := range *results[0].columns {
+		if expectedCols[i] != label {
+			t.Errorf("SelectStarFromMovies Scan: Expected Column %s, got %s", expectedCols[i], label)
+		}
+	}
+
+	// Just checking the first and final values, but results should have all records
+	var values = [][]string{
+		{"1", "Saving Private Ryan"},
+		{"11", "Back to the Future"},
+	}
+	for i, val := range results[0].values {
+		if values[0][i] != val {
+			t.Errorf("SelectStarFromMovies newScanNodeult: Expected Value %s, got %s", values[0][i], val)
+		}
+	}
+	for i, val := range results[len(results)-1].values {
+		if values[1][i] != val {
+			t.Errorf("SelectStarFromMovies newScanNodeult: Expected Value %s, got %s", values[1][i], val)
+		}
+	}
+}
+
+func TestSelectTitleWhereID5FromMovies(t *testing.T) {
+	scanNode := newScanNode("movies")
+	selectionNode := newSelectionNode(scanNode, "id", "5", "EQUALS")
+	projectionNode := newProjectionNode(selectionNode, []string{"title"})
+	results := execute(projectionNode)
+
+	if len(results) != 1 || len(results[0].values) != 1 || results[0].values[0] != "Enemy of the State" || (*results[0].columns)[0] != "title" {
+		t.Error("SelectTitleWhereID5FromMovies: Expected single record, single column with title Enemy of the State")
+	}
+}
+
+func TestSelectStarLimit8Movies(t *testing.T) {
+	limit := 8
+	scanNode := newScanNode("movies")
+	limitNode := newLimitNode(scanNode, limit)
+	results := execute(limitNode)
+
+	if len(results) != 8 {
+		t.Error(fmt.Sprintf("SelectStarLimit8Movies: expected %v records", limit))
+	}
+}
+
+func TestSelectFirst3MoviesSortedByTitle(t *testing.T) {
+	limit := 3
+	scanNode := newScanNode("movies")
+	sortNode := newSortNode(scanNode, "title", "ASC")
+	limitNode := newLimitNode(sortNode, limit)
+	results := execute(limitNode)
+
+	if len(results) != 3 {
+		t.Error(fmt.Sprintf("SelectFirst3MoviesSortedByTitle: expected %v records", limit))
+	}
+	var expectedTuples = [][]string{
+		{"6", "3 Idiots"},
+		{"11", "Back to the Future"},
+		{"5", "Enemy of the State"},
+	}
+
+	for i, tuple := range results {
+		for j, val := range tuple.values {
+			if expectedTuples[i][j] != val {
+				t.Errorf("SelectFirst3MoviesSortedByTitle Expected Value %s, got %s", expectedTuples[i][j], val)
+			}
+		}
+	}
+}
