@@ -53,6 +53,6 @@ dkms.conf
 
 .DS_Store
 .idea
-memtable.log
+*.log
 4 - storage-retrieval/cleveldb/test/
-.db
+*.db
