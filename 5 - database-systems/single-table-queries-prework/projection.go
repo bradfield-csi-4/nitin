@@ -1,38 +1,38 @@
 package main
 
-type projectionNode struct {
-	input   iterator
+type projectionOperator struct {
+	input   operator
 	columns map[string]bool
 }
 
-func (n *projectionNode) init() {
-	n.input.init()
+func (op *projectionOperator) init() {
+	op.input.init()
 }
 
-func newProjectionNode(input iterator, columns []string) *projectionNode {
+func newProjectionOperator(input operator, columns []string) *projectionOperator {
 	columnsMap := make(map[string]bool)
 
 	for _, col := range columns {
 		columnsMap[col] = true
 	}
 
-	return &projectionNode{
+	return &projectionOperator{
 		input:   input,
 		columns: columnsMap,
 	}
 }
 
-func (n *projectionNode) next() *tuple {
-	inputTuple := n.input.next()
+func (op *projectionOperator) next() *row {
+	inputTuple := op.input.next()
 	if inputTuple == nil {
 		return nil
 	}
 
 	var columns []string
-	outputTuple := &tuple{columns: &columns}
+	outputTuple := &row{columns: &columns}
 
 	for i, col := range *inputTuple.columns {
-		if n.columns[col] {
+		if op.columns[col] {
 			*outputTuple.columns = append(*outputTuple.columns, col)
 			outputTuple.values = append(outputTuple.values, inputTuple.values[i])
 		}
@@ -43,4 +43,8 @@ func (n *projectionNode) next() *tuple {
 
 func remove(items []string, s int) []string {
 	return append(items[:s], items[s+1:]...)
+}
+
+func (op *projectionOperator) close() {
+	return
 }

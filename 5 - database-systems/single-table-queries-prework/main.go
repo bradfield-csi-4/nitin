@@ -2,8 +2,8 @@ package main
 
 func main() {
 
-	selectStarFromMoviesWhereIdEquals2 := &selectionNode{
-		input: &scanNode{
+	selectStarFromMoviesWhereIdEquals2 := &selectionOperator{
+		input: &seqScanOperator{
 			table: "movies",
 			idx:   0,
 		},
@@ -14,12 +14,12 @@ func main() {
 		},
 	}
 
-	selectIdFromMovies := &projectionNode{
+	selectIdFromMovies := &projectionOperator{
 		input:   selectStarFromMoviesWhereIdEquals2,
 		columns: map[string]bool{"id": true},
 	}
 
-	tuples := execute(selectIdFromMovies)
-	
-	print(tuples)
+	rows := execute(selectIdFromMovies)
+
+	print(rows)
 }

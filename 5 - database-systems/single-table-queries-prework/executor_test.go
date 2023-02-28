@@ -2,11 +2,18 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
+func TestMain(m *testing.M) {
+	createAndPopulateMoviesTable()
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestSelectStarFromMovies(t *testing.T) {
-	scanNode := newScanNode("movies")
+	scanNode := newSeqScanOperator("movies")
 	results := execute(scanNode)
 
 	// Test
@@ -35,9 +42,9 @@ func TestSelectStarFromMovies(t *testing.T) {
 }
 
 func TestSelectTitleWhereID5FromMovies(t *testing.T) {
-	scanNode := newScanNode("movies")
+	scanNode := newSeqScanOperator("movies")
 	selectionNode := newSelectionNode(scanNode, "id", "5", "EQUALS")
-	projectionNode := newProjectionNode(selectionNode, []string{"title"})
+	projectionNode := newProjectionOperator(selectionNode, []string{"title"})
 	results := execute(projectionNode)
 
 	if len(results) != 1 || len(results[0].values) != 1 || results[0].values[0] != "Enemy of the State" || (*results[0].columns)[0] != "title" {
@@ -47,8 +54,8 @@ func TestSelectTitleWhereID5FromMovies(t *testing.T) {
 
 func TestSelectStarLimit8Movies(t *testing.T) {
 	limit := 8
-	scanNode := newScanNode("movies")
-	limitNode := newLimitNode(scanNode, limit)
+	scanNode := newSeqScanOperator("movies")
+	limitNode := newLimitOperator(scanNode, limit)
 	results := execute(limitNode)
 
 	if len(results) != 8 {
@@ -58,9 +65,9 @@ func TestSelectStarLimit8Movies(t *testing.T) {
 
 func TestSelectFirst3MoviesSortedByTitle(t *testing.T) {
 	limit := 3
-	scanNode := newScanNode("movies")
-	sortNode := newSortNode(scanNode, "title", "ASC")
-	limitNode := newLimitNode(sortNode, limit)
+	scanNode := newSeqScanOperator("movies")
+	sortNode := newSortOperator(scanNode, "title", "ASC")
+	limitNode := newLimitOperator(sortNode, limit)
 	results := execute(limitNode)
 
 	if len(results) != 3 {

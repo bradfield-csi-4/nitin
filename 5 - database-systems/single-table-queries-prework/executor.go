@@ -2,39 +2,29 @@ package main
 
 import "fmt"
 
-type iterator interface {
-	init()
-	next() *tuple
-}
+func execute(operator operator) []row {
+	var rows []row
 
-type tuple struct {
-	columns *[]string
-	values  []string
-}
-
-func execute(iterator iterator) []tuple {
-	var tuples []tuple
-
-	iterator.init()
+	operator.init()
 
 	for {
-		tuple := iterator.next()
-		if tuple == nil {
+		row := operator.next()
+		if row == nil {
 			break
 		}
-		tuples = append(tuples, *tuple)
+		rows = append(rows, *row)
 	}
 
-	return tuples
+	return rows
 }
 
-func print(tuples []tuple) {
-	for _, v := range *(tuples[0].columns) {
+func print(rows []row) {
+	for _, v := range *(rows[0].columns) {
 		fmt.Printf("'%v' ", v)
 	}
 
-	for _, tuple := range tuples {
-		for _, v := range tuple.values {
+	for _, row := range rows {
+		for _, v := range row.values {
 			fmt.Printf("'%v' ", v)
 		}
 	}
