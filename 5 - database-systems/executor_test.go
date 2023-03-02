@@ -7,7 +7,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	createAndPopulateMoviesTable()
+	initializeMoviesTable()
 	code := m.Run()
 	os.Exit(code)
 }
@@ -49,6 +49,15 @@ func TestSelectTitleWhereID5FromMovies(t *testing.T) {
 
 	if len(results) != 1 || len(results[0].values) != 1 || results[0].values[0] != "Enemy of the State" || (*results[0].columns)[0] != "title" {
 		t.Error("SelectTitleWhereID5FromMovies: Expected single record, single column with title Enemy of the State")
+	}
+}
+
+func TestSelectStarWhereTitleSpotlightUsingIndexFromMovies(t *testing.T) {
+	indexScanOperator := newIndexOperator("movies", "title", "Spotlight")
+	results := execute(indexScanOperator)
+
+	if len(results) != 1 || len(results[0].values) != 2 || results[0].values[1] != "Spotlight" || (*results[0].columns)[1] != "title" {
+		t.Error("SelectStarWhereTitleSpotlightUsingIndexFromMovies: Expected single record, single column with title Spotlight")
 	}
 }
 

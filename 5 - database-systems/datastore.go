@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 )
 
 var ds *datastore
@@ -20,20 +21,32 @@ func init() {
 	}
 }
 
-type TableMetadata struct {
+type tableMetadata struct {
 	name            string
 	columnNames     []string
 	file            *os.File
 	freeSpaceOffset int
 }
 
+type index struct {
+	key    string
+	values []*indexEntry
+}
+
+type indexEntry struct {
+	value  string
+	offset int
+}
+
 type datastore struct {
-	systemCatalog map[string]*TableMetadata
+	systemCatalog map[string]*tableMetadata
+	indexes       map[string]*index
 }
 
 func newDatastore() (*datastore, error) {
 	return &datastore{
-		systemCatalog: make(map[string]*TableMetadata),
+		systemCatalog: make(map[string]*tableMetadata),
+		indexes:       make(map[string]*index),
 	}, nil
 }
 
@@ -43,7 +56,7 @@ func (ds *datastore) createTable(name string, columns []string) {
 		log.Fatal("Error creating file for new table", err)
 	}
 
-	table := &TableMetadata{
+	table := &tableMetadata{
 		name:            name,
 		file:            file,
 		columnNames:     columns,
@@ -55,7 +68,58 @@ func (ds *datastore) createTable(name string, columns []string) {
 	ds.systemCatalog[name] = table
 }
 
-func (table *TableMetadata) appendHeader() {
+func (ds *datastore) createIndex(table string, key string) {
+	//file, err := os.OpenFile(fmt.Sprintf("storage/%v.idx", name), os.O_RDWR|os.O_CREATE, os.ModePerm)
+	//if err != nil {
+	//	log.Fatal("Error creating file for new index", err)
+	//}
+
+	colIdx := getIndex(ds.systemCatalog[table].columnNames, key)
+
+	nextOffset := 0
+	var bytesRead int
+	var err error
+
+	var indexValues []*indexEntry
+	var row []string
+
+	for {
+		row, bytesRead, err = ds.readRow(table, nextOffset)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal("Error reading row while creating index", err)
+		}
+
+		nextOffset += bytesRead
+
+		indexValues = append(indexValues, &indexEntry{
+			value:  row[colIdx],
+			offset: nextOffset - bytesRead,
+		})
+	}
+
+	sort.Slice(indexValues, func(i, j int) bool {
+		return indexValues[i].value < indexValues[j].value
+	})
+
+	ds.indexes[table] = &index{
+		key:    key,
+		values: indexValues,
+	}
+}
+
+func getIndex(strings []string, targetString string) int {
+	for i, str := range strings {
+		if str == targetString {
+			return i
+		}
+	}
+	return -1
+}
+
+func (table *tableMetadata) appendHeader() {
 	// TODO: Implement this to enable persistence (i.e. the ability to load a table from disk)
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 func TestWriteReadFromMovies(t *testing.T) {
-	createAndPopulateMoviesTable()
+	initializeMoviesTable()
 
 	nextOffset := 0
 

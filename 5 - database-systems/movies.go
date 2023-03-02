@@ -6,7 +6,7 @@ type movie struct {
 	id, title string
 }
 
-func createAndPopulateMoviesTable() {
+func initializeMoviesTable() {
 	var err error
 	movies := getMovies()
 
@@ -24,6 +24,8 @@ func createAndPopulateMoviesTable() {
 			fmt.Println(err)
 		}
 	}
+
+	ds.createIndex("movies", "title")
 }
 
 func getMovies() []movie {
