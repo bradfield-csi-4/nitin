@@ -7,7 +7,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	initializeMoviesTable()
+	initializeTables()
 	code := m.Run()
 	os.Exit(code)
 }
@@ -95,4 +95,38 @@ func TestSelectFirst3MoviesSortedByTitle(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSelectStarMoviesJoinRatings(t *testing.T) {
+	moviesScanOperator := newSeqScanOperator("movies")
+	ratingsScanOperator := newSeqScanOperator("ratings")
+	joinOperator := newNestedLoopJoinOperator(moviesScanOperator, ratingsScanOperator, "id", "movie_id")
+	results := execute(joinOperator)
+
+	// Test
+	expectedCols := []string{"id", "title", "movie_id", "rating"}
+	for i, label := range *results[0].columns {
+		if expectedCols[i] != label {
+			t.Errorf("SelectStarFromMovies Scan: Expected Column %s, got %s", expectedCols[i], label)
+		}
+	}
+
+	// Just checking the first and final values, but results should have all records
+	var values = [][]string{
+		{"1", "Saving Private Ryan", "1", "4.1"},
+		{"11", "Back to the Future", "11", "4.2"},
+	}
+
+	for i, val := range results[0].values {
+		if values[0][i] != val {
+			t.Errorf("SelectStarMoviesJoinRatings newScanNodeult: expected %s, got %s", values[0][i], val)
+		}
+	}
+
+	for i, val := range results[len(results)-1].values {
+		if values[1][i] != val {
+			t.Errorf("SelectStarMoviesJoinRatings newScanNodeult: expected %s, got %s", values[1][i], val)
+		}
+	}
+
 }

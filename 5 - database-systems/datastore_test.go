@@ -6,11 +6,13 @@ import (
 )
 
 func TestWriteReadFromMovies(t *testing.T) {
-	initializeMoviesTable()
+	movies := getMovies()
+
+	initializeTables()
 
 	nextOffset := 0
 
-	for i := 0; i < len(getMovies()); i++ {
+	for i := 0; i < len(movies); i++ {
 		row, bytesRead, err := ds.readRow("movies", nextOffset)
 		if err != nil {
 			fmt.Println(err)
@@ -19,10 +21,10 @@ func TestWriteReadFromMovies(t *testing.T) {
 
 		nextOffset += bytesRead
 
-		m := movie{row[0], row[1]}
+		m := getMovies()[i]
 
-		if getMovies()[i] != m {
-			t.Errorf("TestWriteReadFromMovies - expected %s, got %s", getMovies()[0], m)
+		if m.id != row[0] && m.title != row[1] {
+			t.Errorf("TestWriteReadFromMovies - expected %s, got %s", m, row)
 		}
 	}
 }
