@@ -20,7 +20,7 @@ func TestSelectStarFromMovies(t *testing.T) {
 	expectedCols := []string{"id", "title"}
 	for i, label := range *results[0].columns {
 		if expectedCols[i] != label {
-			t.Errorf("SelectStarFromMovies Scan: Expected Column %s, got %s", expectedCols[i], label)
+			t.Errorf("SelectStarFromMovies: expected %s, got %s", expectedCols[i], label)
 		}
 	}
 
@@ -31,12 +31,12 @@ func TestSelectStarFromMovies(t *testing.T) {
 	}
 	for i, val := range results[0].values {
 		if values[0][i] != val {
-			t.Errorf("SelectStarFromMovies newScanNodeult: Expected Value %s, got %s", values[0][i], val)
+			t.Errorf("SelectStarFromMovies: expected %s, got %s", values[0][i], val)
 		}
 	}
 	for i, val := range results[len(results)-1].values {
 		if values[1][i] != val {
-			t.Errorf("SelectStarFromMovies newScanNodeult: Expected Value %s, got %s", values[1][i], val)
+			t.Errorf("SelectStarFromMovies: expected %s, got %s", values[1][i], val)
 		}
 	}
 }
@@ -91,23 +91,34 @@ func TestSelectFirst3MoviesSortedByTitle(t *testing.T) {
 	for i, tuple := range results {
 		for j, val := range tuple.values {
 			if expectedTuples[i][j] != val {
-				t.Errorf("SelectFirst3MoviesSortedByTitle Expected Value %s, got %s", expectedTuples[i][j], val)
+				t.Errorf("SelectFirst3MoviesSortedByTitle expected %s, got %s", expectedTuples[i][j], val)
 			}
 		}
 	}
 }
 
-func TestSelectStarMoviesJoinRatings(t *testing.T) {
+func TestSelectStarNestedLoopsJoin(t *testing.T) {
 	moviesScanOperator := newSeqScanOperator("movies")
 	ratingsScanOperator := newSeqScanOperator("ratings")
-	joinOperator := newNestedLoopJoinOperator(moviesScanOperator, ratingsScanOperator, "id", "movie_id")
+	joinTable1 := joinTable{
+		input:  moviesScanOperator,
+		column: "id",
+		name:   "movies",
+	}
+
+	joinTable2 := joinTable{
+		input:  ratingsScanOperator,
+		column: "movie_id",
+		name:   "ratings",
+	}
+	joinOperator := newNestedLoopsJoinOperator(joinTable1, joinTable2)
 	results := execute(joinOperator)
 
 	// Test
 	expectedCols := []string{"id", "title", "movie_id", "rating"}
 	for i, label := range *results[0].columns {
 		if expectedCols[i] != label {
-			t.Errorf("SelectStarFromMovies Scan: Expected Column %s, got %s", expectedCols[i], label)
+			t.Errorf("SelectStarNestedLoopsJoin: expected %s, got %s", expectedCols[i], label)
 		}
 	}
 
@@ -119,14 +130,57 @@ func TestSelectStarMoviesJoinRatings(t *testing.T) {
 
 	for i, val := range results[0].values {
 		if values[0][i] != val {
-			t.Errorf("SelectStarMoviesJoinRatings newScanNodeult: expected %s, got %s", values[0][i], val)
+			t.Errorf("SelectStarNestedLoopsJoin: expected %s, got %s", values[0][i], val)
 		}
 	}
 
 	for i, val := range results[len(results)-1].values {
 		if values[1][i] != val {
-			t.Errorf("SelectStarMoviesJoinRatings newScanNodeult: expected %s, got %s", values[1][i], val)
+			t.Errorf("SelectStarNestedLoopsJoin: expected %s, got %s", values[1][i], val)
+		}
+	}
+}
+
+func TestSelectStarHashJoin(t *testing.T) {
+	moviesScanOperator := newSeqScanOperator("movies")
+	ratingsScanOperator := newSeqScanOperator("ratings")
+	joinTable1 := joinTable{
+		input:  moviesScanOperator,
+		column: "id",
+		name:   "movies",
+	}
+
+	joinTable2 := joinTable{
+		input:  ratingsScanOperator,
+		column: "movie_id",
+		name:   "ratings",
+	}
+	joinOperator := newHashJoinOperator(joinTable1, joinTable2)
+	results := execute(joinOperator)
+
+	// Test
+	expectedCols := []string{"id", "title", "movie_id", "rating"}
+	for i, label := range *results[0].columns {
+		if expectedCols[i] != label {
+			t.Errorf("SelectStarHashJoin: expected %s, got %s", expectedCols[i], label)
 		}
 	}
 
+	// Just checking the first and final values, but results should have all records
+	var values = [][]string{
+		{"1", "Saving Private Ryan", "1", "4.1"},
+		{"11", "Back to the Future", "11", "4.2"},
+	}
+
+	for i, val := range results[0].values {
+		if values[0][i] != val {
+			t.Errorf("SelectStarHashJoin: expected %s, got %s", values[0][i], val)
+		}
+	}
+
+	for i, val := range results[len(results)-1].values {
+		if values[1][i] != val {
+			t.Errorf("SelectStarHashJoin: expected %s, got %s", values[1][i], val)
+		}
+	}
 }
