@@ -8,7 +8,6 @@ void handler(int);
 int main() {
     int pid = (int) getpid();
     printf("Process started w/ PID: %d\n", pid);
-    signal(SIGHUP, handler);
 
     for (int i = 1; i <= 30; i++) {
         signal(i, handler);
@@ -21,7 +20,7 @@ int main() {
         kill(pid, i);
     }
 
-    return;
+    return 0;
 }
 
 void handler(int signum) {
