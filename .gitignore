@@ -56,3 +56,4 @@ dkms.conf
 *.log
 4 - storage-retrieval/cleveldb/test/
 *.db
+.vscode
